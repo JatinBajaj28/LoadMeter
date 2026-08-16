@@ -13,6 +13,7 @@
 % default
 \newcommand{\Bvr@LabInstructor}{Dr. Paramveer %
  Kaur}
+
 % public accessor
 \newcommand{\BvrLabInstructorValue}{\Bvr@LabInstructor}
 \makeatother
@@ -67,16 +68,18 @@
 This project aims to build a scalable, backend-focused distributed
 performance testing platform capable of generating and analyzing
 high volumes of concurrent HTTP traffic against APIs and web
-applications.it 
-focuses primarily on distributed backend architecture, scalable
-request generation, real-time telemetry processing, and automated
+applications, including applications running locally on a developer's
+machine. It focuses primarily on distributed backend architecture,
+scalable remote request generation, secure connectivity to local
+applications, real-time telemetry processing, and automated
 performance analysis.
 
 The objective is not merely to generate load and display graphs, but
 to provide an engineering platform capable of determining system
 capacity, identifying performance bottlenecks, detecting breaking
-points, and comparing performance across different application
-versions.
+points, comparing performance across different application versions,
+and enabling users with limited hardware to use remote cloud-based
+load generators for testing locally hosted applications.
 
 % -----------------------------------------------------
 \section{Time-to-value%
@@ -88,9 +91,11 @@ versions.
     controller-worker architecture and generating concurrent HTTP
     traffic against configurable API endpoints.
 
-    \item Subsequent iterations will introduce distributed workers,
-    telemetry streaming, metric aggregation, real-time dashboards,
-    adaptive stress testing, and performance regression testing.
+    \item Subsequent iterations will introduce distributed cloud
+    workers, a lightweight local load-testing agent, secure remote
+    connectivity, telemetry streaming, metric aggregation,
+    real-time dashboards, adaptive stress testing, and performance
+    regression testing.
 
     \item Development will prioritize measurable backend functionality
     over visual complexity, with each iteration producing a testable
@@ -102,9 +107,11 @@ versions.
 \section{Problem Statement}
 
 Existing performance-testing tools can generate large volumes of
-requests, but configuring, distributing, analyzing, and continuously
-comparing performance results can become complex for backend
-developers.
+requests, but a developer running a local web server on a low-resource
+machine may not have sufficient CPU, memory, or network capacity to
+generate large workloads from the same machine. In addition,
+remotely generated traffic cannot directly access a developer's
+\texttt{localhost} without a secure communication mechanism.
 
 The proposed platform addresses the following challenges:
 
@@ -115,7 +122,19 @@ The proposed platform addresses the following challenges:
     required.
 
     \item \textbf{Distributed load generation:} Large workloads need
-    to be distributed across multiple machines or worker processes.
+    to be distributed across multiple cloud machines or worker
+    processes so that the load-generation infrastructure does not
+    become the bottleneck.
+
+    \item \textbf{Limited client hardware:} Developers and students
+    may have low-resource machines that cannot efficiently generate
+    thousands of concurrent requests while also running the
+    application under test.
+
+    \item \textbf{Local application accessibility:} Cloud-based workers
+    cannot directly access a developer's \texttt{localhost}; a
+    lightweight local agent and secure outbound communication channel
+    are required to route remote test traffic to the local application.
 
     \item \textbf{Limited real-time analysis:} Raw request results need
     to be aggregated into useful metrics such as throughput,
@@ -138,9 +157,24 @@ The proposed platform addresses the following challenges:
 \subsection{Overview}
 
 Build a backend-focused distributed load-testing platform consisting
-of a central controller, multiple load-generator workers, a metrics
-aggregation pipeline, persistent test storage, and a real-time
-monitoring interface.
+of a central controller, multiple cloud-based load-generator workers,
+a lightweight local load-testing agent, a secure communication
+gateway, a metrics aggregation pipeline, persistent test storage,
+and a real-time monitoring and visualization interface.
+
+The local agent enables the platform to test applications that are
+running on a developer's \texttt{localhost}. The agent establishes a
+secure outbound connection to the platform and forwards test traffic
+from remote workers to the locally hosted application. This allows
+the load-generation workload to be executed remotely while the
+developer's machine primarily runs the application under test.
+
+The platform can therefore allow a developer with a low-resource
+machine to run their application locally while using cloud-based
+workers to generate thousands of concurrent requests. The collected
+telemetry will be processed and presented through real-time graphs
+and visualizations, allowing users to observe application performance
+while the test is running.
 
 The platform will provide:
 
@@ -149,17 +183,32 @@ The platform will provide:
     \item \textbf{Central controller:} Creates, configures, schedules,
     starts, and stops performance tests.
 
-    \item \textbf{Load-generator workers:} Generate HTTP traffic
-    concurrently and execute assigned workloads.
+    \item \textbf{Load-generator workers:} Cloud-based, horizontally
+    scalable workers that generate HTTP traffic concurrently and
+    execute assigned workloads.
+
+    \item \textbf{Local load-testing agent:} A lightweight process
+    running on the user's machine that securely connects to the
+    platform and forwards remote test traffic to applications running
+    on \texttt{localhost}.
+
+    \item \textbf{Communication gateway:} Maintains secure connections
+    between cloud workers and local agents without exposing the
+    developer's local application directly to the public Internet.
 
     \item \textbf{Metrics aggregation pipeline:} Processes high-volume
-    telemetry generated by workers and calculates performance metrics.
+    telemetry generated by workers and calculates performance metrics
+    such as throughput, requests per second, latency percentiles,
+    error rates, timeouts, response codes, and concurrency.
 
     \item \textbf{Historical storage:} Stores test configurations,
     execution results, aggregated metrics, and performance history.
 
-    \item \textbf{Real-time dashboard:} Streams test progress and
-    performance metrics to users using WebSockets.
+    \item \textbf{Real-time monitoring and visualization:} Displays
+    live performance graphs for metrics such as requests per second,
+    throughput, P50/P95/P99 latency, error rate, concurrency,
+    response-code distribution, and SLO violations during test
+    execution.
 
 \end{itemize}
 
@@ -171,21 +220,32 @@ The platform will provide:
     endpoint, virtual users, request rate, ramp-up period, duration,
     authentication, headers, payloads, and scenarios.
 
+    \item If the target application is locally hosted, the user starts
+    the lightweight local load-testing agent and registers the local
+    target endpoint, such as \texttt{localhost:8080}.
+
+    \item The local agent establishes a secure outbound connection to
+    the platform so that remote workers can reach the local
+    application through the controlled communication channel.
+
     \item The central controller validates the configuration and
-    distributes the workload across available load-generator workers.
+    distributes the workload across available cloud load-generator
+    workers.
 
-    \item Workers generate concurrent HTTP requests according to the
-    assigned workload and collect request-level telemetry.
+    \item Workers generate concurrent HTTP requests and route them
+    through the communication layer to the local agent when the
+    target is locally hosted, or directly to a remotely accessible
+    target when appropriate.
 
-    \item Workers asynchronously stream telemetry to the metrics
-    aggregation pipeline.
+    \item Workers collect request-level telemetry and asynchronously
+    stream it to the metrics aggregation pipeline.
 
     \item The aggregation layer calculates throughput, requests per
     second, latency percentiles, error rate, timeouts, response codes,
     and concurrent requests.
 
     \item Aggregated metrics are persisted and simultaneously streamed
-    to the dashboard for real-time monitoring.
+    to the dashboard for real-time monitoring and visualization.
 
     \item After execution, the platform evaluates configured SLOs and
     determines whether the application remained within acceptable
@@ -248,6 +308,9 @@ Example SLOs include:
 
     \item Request timeout rate must remain below a configured limit.
 
+    \item Minimum throughput must remain above a configured RPS
+    threshold.
+
 \end{itemize}
 
 The \textbf{maximum sustainable throughput} will be identified as the
@@ -257,6 +320,9 @@ configured SLOs.
 The \textbf{breaking point} will be identified when increasing load
 causes the application to violate one or more critical SLOs, such as
 a significant increase in latency, error rate, or timeouts.
+
+The system can progressively narrow the load range around the first
+SLO violation to estimate the capacity boundary more precisely.
 
 This allows the system to automatically determine the approximate
 capacity boundary of the tested application rather than requiring
@@ -300,15 +366,46 @@ automatically for application builds.
 \section{System Architecture%
   \BvrHint{\ldots backend engineering focus}}
 
-The proposed platform will follow a distributed architecture:
+The proposed platform will follow a distributed architecture in which
+load generation is separated from the system under test. Cloud-based
+workers perform the computationally intensive request generation,
+while a lightweight local agent provides controlled access to
+applications running on a developer's \texttt{localhost}.
+
+The high-level architecture is:
+
+\begin{center}
+\texttt{Controller}
+$\rightarrow$
+\texttt{Cloud Workers}
+$\rightarrow$
+\texttt{Secure Gateway}
+$\rightarrow$
+\texttt{Local Agent}
+$\rightarrow$
+\texttt{localhost Application}
+\end{center}
+
+For remotely accessible applications, workers may communicate with
+the target directly without using the local agent.
 
 \begin{itemize}[leftmargin=0.7cm]
 
     \item \textbf{Controller:} Maintains test configuration, manages
     test lifecycle, schedules workloads, and coordinates workers.
 
-    \item \textbf{Load Generators:} Horizontally scalable workers that
-    generate concurrent HTTP traffic.
+    \item \textbf{Load Generators:} Horizontally scalable cloud
+    workers that generate concurrent HTTP traffic without placing the
+    primary load-generation cost on the user's local machine.
+
+    \item \textbf{Local Agent:} A lightweight client running beside a
+    locally hosted application and maintaining a secure outbound
+    connection to the platform.
+
+    \item \textbf{Secure Communication Gateway:} Routes requests
+    between cloud workers and registered local agents while
+    controlling authentication, authorization, connection state, and
+    request routing.
 
     \item \textbf{Telemetry Pipeline:} Receives high-volume execution
     data asynchronously from workers.
@@ -324,9 +421,17 @@ The proposed platform will follow a distributed architecture:
 
 \end{itemize}
 
-The architecture is designed so that additional load-generator
-workers can be added horizontally when higher traffic generation
-capacity is required.
+The architecture is designed so that additional cloud
+load-generator workers can be added horizontally when higher traffic
+generation capacity is required. This separates the capacity of the
+load-generation infrastructure from the hardware available to the
+developer running the application under test.
+
+A developer with a low-resource machine can therefore run a local
+application and use multiple remote workers to generate a large
+concurrent workload. The local agent performs request forwarding and
+communication management rather than acting as the primary load
+generator.
 
 % -----------------------------------------------------
 \section{Solution Approach%
@@ -343,9 +448,23 @@ without requiring one dedicated blocking thread for every request.
 
 \subsection{Distributed Coordination}
 
-The controller will divide workload among workers and maintain the
-state of active performance tests. Workers will report their execution
-status and telemetry back to the controller or telemetry pipeline.
+The controller will divide workload among cloud workers and maintain
+the state of active performance tests. Workers will report their
+execution status and telemetry back to the controller or telemetry
+pipeline. Worker registration, health checks, heartbeats, and
+workload assignment will allow the controller to manage a changing
+set of load-generation nodes.
+
+\subsection{Local Application Connectivity}
+
+A lightweight local agent will maintain a secure outbound connection
+to the platform. When a test targets \texttt{localhost}, the platform
+will route requests through this connection to the locally running
+application.
+
+The design avoids requiring the user's application to be directly
+exposed to the public Internet and prevents the local machine from
+being responsible for generating the complete workload.
 
 \subsection{Rate Limiting}
 
@@ -391,6 +510,11 @@ The dashboard will provide real-time visibility into:
     \item SLO violations and detected performance limits.
 
 \end{itemize}
+
+The visualization layer will present these metrics through
+real-time graphs and charts, allowing users to observe changes in
+latency, throughput, concurrency, error rates, and load levels during
+test execution.
 
 This avoids the need to wait until the test finishes before
 understanding the application's current behavior.
@@ -466,6 +590,10 @@ The project will be evaluated using measurable technical metrics.
     \item Accuracy of maximum sustainable throughput and breaking-point
     detection.
 
+    \item Local-agent request forwarding latency and reliability.
+
+    \item Scalability achieved by adding additional cloud workers.
+
 \end{itemize}
 
 % -----------------------------------------------------
@@ -476,8 +604,14 @@ The system is designed for horizontal scalability.
 
 \begin{enumerate}[leftmargin=0.7cm]
 
-    \item \textbf{Load-generator scalability:} Additional workers can
-    be added to increase traffic-generation capacity.
+    \item \textbf{Load-generator scalability:} Additional cloud
+    workers can be added to increase traffic-generation capacity
+    without requiring upgrades to the user's local machine.
+
+    \item \textbf{Remote testing of local applications:} A lightweight
+    agent allows cloud workers to test applications bound to
+    \texttt{localhost}, making the platform usable for developers and
+    students with limited hardware.
 
     \item \textbf{Aggregation scalability:} Telemetry processing can
     be distributed across multiple aggregation instances when event
@@ -508,8 +642,12 @@ The system is designed for horizontal scalability.
 
     \item Central controller for creating and managing tests.
 
-    \item Single load-generator worker capable of generating
+    \item Single cloud load-generator worker capable of generating
     configurable concurrent HTTP requests.
+
+    \item Basic local load-testing agent capable of establishing a
+    secure connection to the platform and forwarding requests to a
+    locally hosted application.
 
     \item Configurable virtual users, request rate, duration,
     ramp-up/ramp-down, headers, authentication, and payloads.
@@ -527,11 +665,18 @@ The system is designed for horizontal scalability.
 
 \begin{itemize}[leftmargin=0.7cm]
 
-    \item Multiple distributed load-generator workers.
+    \item Multiple distributed cloud load-generator workers.
+
+    \item Local load-testing agent with secure connection management.
+
+    \item Communication gateway for routing remote traffic to local
+    applications.
 
     \item Streaming telemetry pipeline.
 
     \item Real-time WebSocket dashboard.
+
+    \item Real-time performance graphs and visualization.
 
     \item P50/P95/P99 latency analysis.
 
@@ -555,7 +700,12 @@ The system is designed for horizontal scalability.
 \begin{itemize}[leftmargin=0.7cm]
 
     \item \textbf{Load-generator bottleneck:} Use asynchronous networking
-    and distribute traffic across multiple workers.
+    and distribute traffic across multiple cloud workers.
+
+    \item \textbf{Local machine bottleneck:} Move request generation
+    to remote workers so that the user's machine primarily processes
+    the application under test rather than generating the complete
+    workload.
 
     \item \textbf{Telemetry overload:} Use batching, asynchronous
     streaming, and aggregation instead of storing every event
@@ -568,6 +718,15 @@ The system is designed for horizontal scalability.
     \item \textbf{Worker failure:} Track worker heartbeats and isolate
     failed workers from the remaining test execution.
 
+    \item \textbf{Secure local connectivity:} Authenticate local
+    agents, use secure outbound connections, restrict request routing,
+    and avoid exposing arbitrary local ports to remote users.
+
+    \item \textbf{Local network bottleneck:} Clearly distinguish
+    remote-to-local testing from cloud-to-cloud testing because
+    bandwidth and network latency between the user's machine and the
+    cloud can affect test results.
+
     \item \textbf{False breaking-point detection:} Evaluate multiple
     metrics and require configurable SLO violations rather than
     relying on a single latency measurement.
@@ -579,7 +738,8 @@ The system is designed for horizontal scalability.
 \end{itemize}
 
 % -----------------------------------------------------
-\section{Summary} This project proposes a backend-focused distributed performance testing platform capable of generating large-scale HTTP workloads using a central controller and horizontally scalable load-generator workers. Unlike a basic load-testing tool that only generates requests and plots graphs, the proposed system focuses on distributed workload orchestration, asynchronous networking, telemetry streaming, real-time metric aggregation, performance visualization, adaptive stress testing, SLO-based capacity analysis, breaking-point detection, and performance regression testing. The visualization layer will transform aggregated telemetry into real-time performance graphs, latency percentile trends, throughput and concurrency charts, response-code distributions, SLO indicators, capacity visualizations, and historical comparisons. The platform will provide a practical environment for studying and implementing backend engineering concepts including high concurrency, distributed systems, rate limiting, asynchronous processing, fault tolerance, scheduling, real-time communication, performance benchmarking, CI/CD quality gates, performance visualization, and scalable data storage.
+\section{Summary} This project proposes a backend-focused distributed performance testing platform capable of generating large-scale HTTP workloads using a central controller and horizontally scalable cloud load-generator workers. A lightweight local agent will additionally allow users to test applications running on \texttt{localhost} without requiring their local machine to generate the complete workload. Unlike a basic load-testing tool that only generates requests and plots graphs, the proposed system focuses on distributed workload orchestration, secure remote-to-local request routing, asynchronous networking, telemetry streaming, real-time metric aggregation, performance visualization, adaptive stress testing, SLO-based capacity analysis, breaking-point detection, and performance regression testing. The visualization layer will transform aggregated telemetry into real-time performance graphs, latency percentile trends, throughput and concurrency charts, response-code distributions, SLO indicators, capacity visualizations, and historical comparisons. The platform will provide a practical environment for studying and implementing backend engineering concepts including high concurrency, distributed systems, rate limiting, asynchronous processing, secure tunneling, worker coordination, fault tolerance, scheduling, real-time communication, performance benchmarking, CI/CD quality gates, performance visualization, and scalable data storage.
+
 % -----------------------------------------------------
 
 \end{document}
