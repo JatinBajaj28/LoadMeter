@@ -51,5 +51,5 @@ The objective of Week 1 was to understand the load-testing problem, research exi
 
 ## Individual Contribution
 
-My primary contribution was **monitoring, visualization, documentation, and project planning**. I focused on defining the proposed dashboard requirements, identifying useful visualized metrics, researching future capabilities, and contributing to scope, risks, evaluation, and proposal finalisation.
+My primary contribution was **monitoring, visualization, documentation, and project planning**. I focused on defining the proposed dashboard requirements, identifying useful visualized metrics, researching future capabilities, and contributing to scope, risks, evaluation, and proposal finalisation..
 
