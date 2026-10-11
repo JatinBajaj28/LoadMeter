@@ -1,0 +1,62 @@
+# Week 4 Project Journal — Distributed Performance Testing Platform
+
+## MST Week — Extreme Programming and Software Quality Practices
+
+## Objective for the Week
+
+The objective of Week 4 was to prepare for the MST, understand software development methodologies, and study Extreme Programming practices that could improve code quality, integration, and reliability throughout LoadMeter's development.
+
+## Day 1 — MST Preparation and Software Quality
+
+- Focused on theoretical preparation for the MST.
+- Reviewed software engineering principles associated with maintainability, reliability, testing, and modular design.
+- Studied the importance of systematic development practices in collaborative software projects.
+
+## Day 2 — Waterfall and Agile Comparison
+
+- Studied the sequential phases of the Waterfall development model.
+- Reviewed Agile's iterative and incremental approach.
+- Compared the two workflows in terms of planning, feedback, adaptability, and the handling of changing requirements.
+
+## Day 3 — Introduction to Extreme Programming
+
+- Studied Extreme Programming as an Agile framework focused on software quality and frequent feedback.
+- Explored its emphasis on small releases, continuous improvement, collaboration, and responsiveness to changing requirements.
+- Considered how these principles could support the development of a distributed performance-testing platform.
+
+## Day 4 — XP Engineering Practices
+
+- Studied test-driven development (TDD), pair programming, continuous integration, refactoring, and coding standards.
+- Examined how automated tests can help detect defects during development.
+- Explored how refactoring and consistent coding practices can improve maintainability without intentionally changing existing behaviour.
+
+## Day 5 — Applying XP Principles to LoadMeter
+
+- Discussed the importance of testing request forwarding, connection handling, concurrency, and metrics calculations.
+- Considered how incremental integration could reduce the difficulty of combining the gateway, load generator, and local agent.
+- Identified automated testing and frequent validation as useful practices for a networking-intensive project.
+
+## Day 6 — MST Review and Team Decision
+
+- Reviewed the theoretical concepts studied during the MST week.
+- Discussed the relevance of XP engineering practices to LoadMeter's development.
+- Participated in the team discussion to adopt an Agile, XP-inspired workflow organised into sprints, with testing and incremental integration as development priorities.
+
+## Week 4 Deliverables
+
+- Notes on software development workflows and software quality.
+- Understanding of XP practices, including TDD, pair programming, continuous integration, and refactoring.
+- Identification of testing priorities for LoadMeter's networking components.
+- Team decision to use sprint-based Agile development with selected XP practices.
+
+## Individual Contribution
+
+My primary contribution was **researching XP engineering practices and their relevance to software quality**. I focused on testing, continuous integration, refactoring, and incremental integration, particularly for the gateway, load generator, and local-agent components.
+
+## Planned Next Steps
+
+- Identify test cases for request forwarding and request-response correlation.
+- Introduce automated tests as individual components are implemented.
+- Plan incremental integration and validation within each sprint.
+
+> **Note:** Week 4 focused on theoretical preparation and deciding which development practices to adopt. Actual implementation of TDD, continuous integration, and other XP practices should be recorded only when those activities are performed.
