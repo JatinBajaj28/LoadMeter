@@ -1,3 +1,4 @@
+
 package com.software.cloudtunnelgateway.loadtest;
 
 import java.util.Map;
@@ -27,11 +28,13 @@ public class LoadTestRequest {
     private String expectedBodyContains;
     private Integer maxResponseTimeMillis;
 
+    // Result configuration
+    private boolean includeRequestDetails = false;
+
     public LoadTestRequest() {
     }
 
     // Target URL
-
     public String getTargetUrl() {
         return targetUrl;
     }
@@ -41,7 +44,6 @@ public class LoadTestRequest {
     }
 
     // HTTP method
-
     public String getMethod() {
         return method;
     }
@@ -51,7 +53,6 @@ public class LoadTestRequest {
     }
 
     // Headers
-
     public Map<String, String> getHeaders() {
         return headers;
     }
@@ -61,19 +62,15 @@ public class LoadTestRequest {
     }
 
     // Query parameters
-
     public Map<String, String> getQueryParams() {
         return queryParams;
     }
 
-    public void setQueryParams(
-            Map<String, String> queryParams
-    ) {
+    public void setQueryParams(Map<String, String> queryParams) {
         this.queryParams = queryParams;
     }
 
     // Request body
-
     public String getRequestBody() {
         return requestBody;
     }
@@ -83,7 +80,6 @@ public class LoadTestRequest {
     }
 
     // Gateway host
-
     public String getGatewayHost() {
         return gatewayHost;
     }
@@ -93,7 +89,6 @@ public class LoadTestRequest {
     }
 
     // Gateway port
-
     public int getGatewayPort() {
         return gatewayPort;
     }
@@ -103,7 +98,6 @@ public class LoadTestRequest {
     }
 
     // Total requests
-
     public int getTotalRequests() {
         return totalRequests;
     }
@@ -113,7 +107,6 @@ public class LoadTestRequest {
     }
 
     // Concurrency
-
     public int getConcurrency() {
         return concurrency;
     }
@@ -123,7 +116,6 @@ public class LoadTestRequest {
     }
 
     // Request timeout
-
     public int getTimeoutMillis() {
         return timeoutMillis;
     }
@@ -133,38 +125,38 @@ public class LoadTestRequest {
     }
 
     // Expected HTTP status
-
     public Integer getExpectedStatusCode() {
         return expectedStatusCode;
     }
 
-    public void setExpectedStatusCode(
-            Integer expectedStatusCode
-    ) {
+    public void setExpectedStatusCode(Integer expectedStatusCode) {
         this.expectedStatusCode = expectedStatusCode;
     }
 
     // Expected response body content
-
     public String getExpectedBodyContains() {
         return expectedBodyContains;
     }
 
-    public void setExpectedBodyContains(
-            String expectedBodyContains
-    ) {
+    public void setExpectedBodyContains(String expectedBodyContains) {
         this.expectedBodyContains = expectedBodyContains;
     }
 
     // Maximum allowed response time
-
     public Integer getMaxResponseTimeMillis() {
         return maxResponseTimeMillis;
     }
 
-    public void setMaxResponseTimeMillis(
-            Integer maxResponseTimeMillis
-    ) {
+    public void setMaxResponseTimeMillis(Integer maxResponseTimeMillis) {
         this.maxResponseTimeMillis = maxResponseTimeMillis;
+    }
+
+    // Include individual request details in results
+    public boolean isIncludeRequestDetails() {
+        return includeRequestDetails;
+    }
+
+    public void setIncludeRequestDetails(boolean includeRequestDetails) {
+        this.includeRequestDetails = includeRequestDetails;
     }
 }

@@ -1,3 +1,4 @@
+
 package com.software.localagent.tunnel;
 
 import io.netty.bootstrap.Bootstrap;
@@ -22,9 +23,27 @@ public class LocalConnectionManager {
         this.eventLoopGroup = new NioEventLoopGroup();
     }
 
+    // Backward-compatible method for the existing handler.
     public void openConnection(
             long streamId,
             int localPort,
+            Channel tunnelChannel,
+            Consumer<Channel> onSuccess,
+            Consumer<Throwable> onFailure
+    ) {
+        openConnection(
+                streamId,
+                new TargetConfiguration("127.0.0.1", localPort),
+                tunnelChannel,
+                onSuccess,
+                onFailure
+        );
+    }
+
+    // Connects to the configured target application.
+    public void openConnection(
+            long streamId,
+            TargetConfiguration targetConfiguration,
             Channel tunnelChannel,
             Consumer<Channel> onSuccess,
             Consumer<Throwable> onFailure
@@ -46,41 +65,44 @@ public class LocalConnectionManager {
                         )
                 );
 
-        bootstrap.connect(
-                "127.0.0.1",
-                localPort
-        ).addListener(future -> {
+        String targetHost =
+                targetConfiguration.getTargetHost();
 
-            if (future.isSuccess()) {
+        int targetPort =
+                targetConfiguration.getTargetPort();
 
-                Channel channel =
-                        ((io.netty.channel.ChannelFuture) future)
-                                .channel();
+        bootstrap.connect(targetHost, targetPort)
+                .addListener(future -> {
 
-                localChannels.put(streamId, channel);
+                    if (future.isSuccess()) {
 
-                System.out.println(
-                        "Local connection established. "
-                                + "streamId="
-                                + streamId
-                );
+                        Channel channel =
+                                ((io.netty.channel.ChannelFuture) future)
+                                        .channel();
 
-                onSuccess.accept(channel);
+                        localChannels.put(streamId, channel);
 
-            } else {
+                        System.out.println(
+                                "Target connection established: "
+                                        + targetHost + ":" + targetPort
+                                        + ", streamId=" + streamId
+                        );
 
-                Throwable cause = future.cause();
+                        onSuccess.accept(channel);
 
-                System.err.println(
-                        "Failed to connect to localhost:"
-                                + localPort
-                                + " for stream "
-                                + streamId
-                );
+                    } else {
 
-                onFailure.accept(cause);
-            }
-        });
+                        Throwable cause = future.cause();
+
+                        System.err.println(
+                                "Failed to connect to target "
+                                        + targetHost + ":" + targetPort
+                                        + ", streamId=" + streamId
+                        );
+
+                        onFailure.accept(cause);
+                    }
+                });
     }
 
     public Channel getChannel(long streamId) {

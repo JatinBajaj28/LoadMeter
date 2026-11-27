@@ -1,3 +1,4 @@
+
 package com.software.localagent.tunnel;
 
 import com.software.localagent.model.ConnectionStatus;
@@ -9,23 +10,40 @@ import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 
 import java.nio.charset.StandardCharsets;
 
-public class TunnelChannelHandler
-        extends ChannelInboundHandlerAdapter {
+public class TunnelChannelHandler extends ChannelInboundHandlerAdapter {
 
     private final TunnelConfiguration configuration;
+    private final TargetConfiguration targetConfiguration;
     private final int localPort;
     private final TunnelClientListener listener;
     private final NettyTunnelClient tunnelClient;
     private final LocalConnectionManager localConnectionManager;
 
+    // Backward-compatible constructor for the existing initializer.
     public TunnelChannelHandler(
             TunnelConfiguration configuration,
             int localPort,
             TunnelClientListener listener,
             NettyTunnelClient tunnelClient
     ) {
+        this(
+                configuration,
+                new TargetConfiguration("127.0.0.1", localPort),
+                listener,
+                tunnelClient
+        );
+    }
+
+    // New constructor accepting the configured target destination.
+    public TunnelChannelHandler(
+            TunnelConfiguration configuration,
+            TargetConfiguration targetConfiguration,
+            TunnelClientListener listener,
+            NettyTunnelClient tunnelClient
+    ) {
         this.configuration = configuration;
-        this.localPort = localPort;
+        this.targetConfiguration = targetConfiguration;
+        this.localPort = targetConfiguration.getTargetPort();
         this.listener = listener;
         this.tunnelClient = tunnelClient;
         this.localConnectionManager = new LocalConnectionManager();
@@ -66,9 +84,11 @@ public class TunnelChannelHandler
     ) throws Exception {
 
         if (event instanceof SslHandshakeCompletionEvent sslEvent) {
+
             if (sslEvent.isSuccess()) {
                 System.out.println("TLS handshake completed.");
                 sendRegister(ctx);
+
             } else {
                 System.err.println("TLS handshake failed.");
 
@@ -88,6 +108,7 @@ public class TunnelChannelHandler
             ChannelHandlerContext ctx,
             Object msg
     ) {
+
         if (!(msg instanceof TunnelMessage message)) {
             System.err.println(
                     "Unexpected tunnel message type: "
@@ -124,12 +145,12 @@ public class TunnelChannelHandler
 
                 localConnectionManager.openConnection(
                         streamId,
-                        localPort,
+                        targetConfiguration,
                         ctx.channel(),
 
                         channel -> {
                             System.out.println(
-                                    "Local connection ready. "
+                                    "Target connection ready. "
                                             + "Sending OPEN_STREAM_ACK. "
                                             + "streamId=" + streamId
                             );
@@ -145,8 +166,11 @@ public class TunnelChannelHandler
 
                         error -> {
                             System.err.println(
-                                    "Failed to open local connection. "
+                                    "Failed to open target connection. "
                                             + "streamId=" + streamId
+                                            + ", target="
+                                            + targetConfiguration.getTargetHost()
+                                            + ":" + localPort
                                             + ", error=" + error.getMessage()
                             );
 
@@ -176,7 +200,7 @@ public class TunnelChannelHandler
 
                 if (localChannel == null || !localChannel.isActive()) {
                     System.err.println(
-                            "No active local connection for streamId="
+                            "No active target connection for streamId="
                                     + streamId
                     );
                     return;
@@ -197,15 +221,18 @@ public class TunnelChannelHandler
                 localChannel.writeAndFlush(
                         Unpooled.wrappedBuffer(payload)
                 ).addListener(future -> {
+
                     if (future.isSuccess()) {
                         System.out.println(
-                                "Forwarded DATA to localhost:"
-                                        + localPort
+                                "Forwarded DATA to "
+                                        + targetConfiguration.getTargetHost()
+                                        + ":" + localPort
                                         + ", streamId=" + streamId
                         );
+
                     } else {
                         System.err.println(
-                                "Failed to forward DATA to local app: "
+                                "Failed to forward DATA to target app: "
                                         + future.cause()
                         );
                     }

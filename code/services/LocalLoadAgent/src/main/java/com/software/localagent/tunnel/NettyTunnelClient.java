@@ -1,3 +1,4 @@
+
 package com.software.localagent.tunnel;
 
 import com.software.localagent.model.ConnectionStatus;
@@ -31,8 +32,23 @@ public class NettyTunnelClient implements TunnelClient {
                 new NioEventLoopGroup(1);
     }
 
+    // Backward-compatible method.
+    // Existing callers can still connect to localhost.
     @Override
     public void connect(int localPort) {
+
+        connect(
+                new TargetConfiguration(
+                        "127.0.0.1",
+                        localPort
+                )
+        );
+    }
+
+    // Connect using the selected application destination.
+    public void connect(
+            TargetConfiguration targetConfiguration
+    ) {
 
         if (status == ConnectionStatus.CONNECTED ||
                 status == ConnectionStatus.CONNECTING) {
@@ -55,7 +71,7 @@ public class NettyTunnelClient implements TunnelClient {
                 .handler(
                         new TunnelChannelInitializer(
                                 configuration,
-                                localPort,
+                                targetConfiguration,
                                 listener,
                                 this
                         )
@@ -68,8 +84,7 @@ public class NettyTunnelClient implements TunnelClient {
 
             if (!future.isSuccess()) {
 
-                status =
-                        ConnectionStatus.ERROR;
+                status = ConnectionStatus.ERROR;
 
                 listener.onStatusChanged(status);
 
@@ -87,6 +102,13 @@ public class NettyTunnelClient implements TunnelClient {
             System.out.println(
                     "Connected to tunnel gateway."
             );
+
+            System.out.println(
+                    "Configured target application: "
+                            + targetConfiguration.getTargetHost()
+                            + ":"
+                            + targetConfiguration.getTargetPort()
+            );
         });
     }
 
@@ -100,8 +122,7 @@ public class NettyTunnelClient implements TunnelClient {
             channel = null;
         }
 
-        status =
-                ConnectionStatus.DISCONNECTED;
+        status = ConnectionStatus.DISCONNECTED;
 
         listener.onStatusChanged(status);
     }
@@ -118,5 +139,22 @@ public class NettyTunnelClient implements TunnelClient {
         this.status = status;
 
         listener.onStatusChanged(status);
+    }
+    public void shutdown() {
+
+        if (channel != null) {
+            channel.close();
+            channel = null;
+        }
+
+        eventLoopGroup.shutdownGracefully();
+
+        status = ConnectionStatus.DISCONNECTED;
+
+        listener.onStatusChanged(status);
+
+        System.out.println(
+                "Netty tunnel client shut down."
+        );
     }
 }
