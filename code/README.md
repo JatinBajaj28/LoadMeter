@@ -39,9 +39,9 @@ This directory contains the core services and components powering the **LoadMete
 
 ### 3. `TestApp`
 * **Technology**: Java 17, Spring Boot 4.1.x
-* **Description**: Sample target microservices used for validation, integration tests, and benchmarking.
+* **Description**: Sample target microservices used for validation, integration tests, and benchmarking. The `student1` app provides a small web page and Redis-backed GET/POST request counters.
 * **Modules**:
-  * **`student1`**: A sample Spring Boot REST service running on `localhost:8080`, exposing endpoints such as `GET /api/users` and `POST /api/users` to simulate real-world web application behavior under load.
+  * **`student1`**: A sample Spring Boot app running on `localhost:8080`, serving a request-counter page at `/` and exposing `GET /api/test` and `POST /api/test`.
 
 ---
 
@@ -54,11 +54,17 @@ This directory contains the core services and components powering the **LoadMete
 ### Running Locally
 
 #### 1. Start the Target Application (`TestApp`)
+Start Redis first (for example, with Docker):
+```bash
+docker run --name student1-redis -p 6379:6379 -d redis:7-alpine
+```
+
+Then start the Spring Boot application:
 ```bash
 cd services/TestApp/student1
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
-*Accessible locally at `http://localhost:8080/api/users`.*
+*Open `http://localhost:8080/` for the test page. Use its Run a load test form to send a batch of GET or POST requests through the gateway and see the results and request counts on the page. The gateway and connected LocalLoadAgent must be running. The API endpoints are `GET /api/test`, `POST /api/test`, and read-only `GET /api/counts`. Set `REDIS_HOST` and `REDIS_PORT` to use a Redis server other than `localhost:6379`.*
 
 #### 2. Start the Cloud Tunnel Gateway
 ```bash

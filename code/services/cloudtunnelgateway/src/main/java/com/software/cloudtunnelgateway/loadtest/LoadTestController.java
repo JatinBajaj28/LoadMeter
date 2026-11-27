@@ -8,6 +8,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/load-tests")
+@CrossOrigin(origins = "http://localhost:8080")
 public class LoadTestController {
 
     private final LoadTestService loadTestService;
@@ -78,13 +79,13 @@ public class LoadTestController {
         LoadTestJob job = loadTestService.getJob(testId);
 
         if (job == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Load test not found"));
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Load test not found"));
         }
 
         if (job.getStatus() == LoadTestJob.Status.FAILED) {
-            return ResponseEntity
+                return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
                             "testId", testId,

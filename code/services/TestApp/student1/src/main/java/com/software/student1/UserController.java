@@ -1,28 +1,29 @@
 package com.software.student1;
 
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 public class UserController {
+    private final RequestCounterService requestCounterService;
 
-    @GetMapping("/api/users")
-    public String getUsers() {
-
-        return "Hello from Student Application";
+    public UserController(RequestCounterService requestCounterService) {
+        this.requestCounterService = requestCounterService;
     }
-    @PostMapping(
-            value = "/api/users",
-            consumes = "application/json"
-    )
-    public String createUser(
-            @RequestBody Map<String, String> user
-    ) {
-        return "Created user: " + user.get("name");
+
+    @GetMapping("/api/test")
+    public RequestCounts getTest() {
+        return requestCounterService.recordGetRequest();
+    }
+
+    @PostMapping("/api/test")
+    public RequestCounts postTest() {
+        return requestCounterService.recordPostRequest();
+    }
+
+    @GetMapping("/api/counts")
+    public RequestCounts getCounts() {
+        return requestCounterService.getCurrentCounts();
     }
 }

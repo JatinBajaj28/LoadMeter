@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Request Counter | LoadMeter</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #172033;
+            background: #f5f7fb;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            --muted: #64708a;
+            --line: #e5e9f1;
+            --blue: #315ee8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            padding: 56px 20px;
+            background:
+                radial-gradient(ellipse at 12% 0%, #e8edff 0, transparent 34rem),
+                #f5f7fb;
+        }
+
+        main {
+            width: min(100%, 820px);
+            margin: 0 auto;
+        }
+
+        .topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #303c56;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border-radius: 12px;
+            background: #315ee8;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .intro {
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 750;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(30px, 5vw, 42px);
+            letter-spacing: -0.045em;
+            line-height: 1.1;
+        }
+
+        .intro p:last-child {
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 12px 32px rgb(27 43 77 / 5%);
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .panel-copy {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        button {
+            min-height: 42px;
+            padding: 0 16px;
+            border: 1px solid #dce2ed;
+            border-radius: 10px;
+            background: #fff;
+            color: #303c56;
+            cursor: pointer;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            border-color: #b8c5e1;
+            background: #f8faff;
+        }
+
+        button:focus-visible {
+            outline: 3px solid rgb(49 94 232 / 25%);
+            outline-offset: 2px;
+        }
+
+        button.primary {
+            border-color: var(--blue);
+            background: var(--blue);
+            color: #fff;
+        }
+
+        button.primary:hover:not(:disabled) {
+            border-color: #244ed0;
+            background: #244ed0;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.62;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin: 18px 0;
+        }
+
+        .metric {
+            min-height: 132px;
+            padding: 20px;
+        }
+
+        .metric-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .metric-marker {
+            width: 8px;
+            height: 8px;
+            border-radius: 3px;
+            background: #6684f2;
+        }
+
+        .metric:nth-child(2) .metric-marker {
+            background: #a27ce8;
+        }
+
+        .metric:nth-child(3) .metric-marker {
+            background: #20a981;
+        }
+
+        .metric-value {
+            display: block;
+            margin-top: 16px;
+            font-size: 34px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 750;
+            letter-spacing: -0.045em;
+            line-height: 1;
+        }
+
+        .load-test-panel {
+            margin-top: 18px;
+            padding: 24px;
+        }
+
+        .load-test-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            align-items: end;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .field {
+            display: grid;
+            gap: 7px;
+            color: #536078;
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            min-height: 42px;
+            padding: 0 11px;
+            border: 1px solid #dce2ed;
+            border-radius: 9px;
+            background: #fff;
+            color: #303c56;
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--blue);
+            outline: 3px solid rgb(49 94 232 / 15%);
+        }
+
+        .load-test-note {
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .load-test-status {
+            margin: 16px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .load-test-status[data-state="success"] {
+            color: #12815b;
+        }
+
+        .load-test-status[data-state="error"] {
+            color: #c33f3f;
+        }
+
+        .load-test-results {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .load-test-results[hidden] {
+            display: none;
+        }
+
+        .load-result {
+            padding: 13px;
+            border: 1px solid #edf0f5;
+            border-radius: 10px;
+            background: #f8f9fc;
+        }
+
+        .load-result span {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .load-result strong {
+            display: block;
+            margin-top: 6px;
+            color: #303c56;
+            font-size: 16px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .footnote {
+            margin: 16px 2px 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 620px) {
+            body {
+                padding: 28px 16px;
+            }
+
+            .metrics {
+                gap: 9px;
+            }
+
+            .load-test-panel {
+                padding: 20px;
+            }
+
+            .load-test-form {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .load-test-form button {
+                grid-column: 1 / -1;
+            }
+
+            .load-test-results {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .metric {
+                min-height: 108px;
+                padding: 14px 12px;
+            }
+
+            .metric-label {
+                gap: 6px;
+                font-size: 11px;
+            }
+
+            .metric-value {
+                margin-top: 14px;
+                font-size: 28px;
+            }
+
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="topline">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">L</span>
+            <span>LoadMeter</span>
+        </div>
+    </div>
+
+    <header class="intro">
+        <p class="eyebrow">Sample service</p>
+        <h1>Request counter</h1>
+        <p>Run a test and watch the GET, POST, and total request counts update from Redis.</p>
+    </header>
+
+    <section class="panel load-test-panel" aria-labelledby="load-test-title">
+        <h2 id="load-test-title">Run a load test</h2>
+        <p class="panel-copy">Send a batch of requests through the gateway and see how the app responds.</p>
+        <form id="load-test-form" class="load-test-form">
+            <label class="field" for="load-method">
+                Request type
+                <select id="load-method">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                </select>
+            </label>
+            <label class="field" for="total-requests">
+                Number of requests
+                <input id="total-requests" type="number" min="1" max="1000" value="50" required>
+            </label>
+            <label class="field" for="request-concurrency">
+                At a time
+                <input id="request-concurrency" type="number" min="1" max="100" value="5" required>
+            </label>
+            <button id="run-load-test" class="primary" type="submit">Run test</button>
+        </form>
+        <p class="load-test-note">Requires the gateway, Redis, app, and connected agent to be running.</p>
+        <p id="load-test-status" class="load-test-status" role="status" aria-live="polite">Ready to run a test.</p>
+        <div id="load-test-results" class="load-test-results" aria-label="Load test results" hidden>
+            <div class="load-result"><span>Total requests</span><strong id="result-total">—</strong></div>
+            <div class="load-result"><span>Passed</span><strong id="result-passed">—</strong></div>
+            <div class="load-result"><span>Failed</span><strong id="result-failed">—</strong></div>
+            <div class="load-result"><span>Requests per second</span><strong id="result-rate">—</strong></div>
+            <div class="load-result"><span>Average response</span><strong id="result-average">—</strong></div>
+            <div class="load-result"><span>95% response time</span><strong id="result-p95">—</strong></div>
+        </div>
+    </section>
+
+    <section class="metrics" aria-label="Request counts">
+        <article class="panel metric">
+            <div class="metric-label"><span class="metric-marker" aria-hidden="true"></span>GET requests</div>
+            <strong id="get-count" class="metric-value">—</strong>
+        </article>
+        <article class="panel metric">
+            <div class="metric-label"><span class="metric-marker" aria-hidden="true"></span>POST requests</div>
+            <strong id="post-count" class="metric-value">—</strong>
+        </article>
+        <article class="panel metric">
+            <div class="metric-label"><span class="metric-marker" aria-hidden="true"></span>Total requests</div>
+            <strong id="total-count" class="metric-value">—</strong>
+        </article>
+    </section>
+
+    <p class="footnote">Counts are stored in Redis. They persist across app restarts and can be reset from Redis.</p>
+</main>
+<script>
+    const loadTestForm = document.getElementById("load-test-form");
+    const loadTestButton = document.getElementById("run-load-test");
+    const loadTestStatus = document.getElementById("load-test-status");
+    const loadTestResults = document.getElementById("load-test-results");
+    const gatewayApi = "http://localhost:8081/api/load-tests";
+
+    function updateCounts(counts) {
+        document.getElementById("get-count").textContent = counts.getCount;
+        document.getElementById("post-count").textContent = counts.postCount;
+        document.getElementById("total-count").textContent = counts.totalCount;
+    }
+
+    async function requestJson(url, options) {
+        const response = await fetch(url, options);
+        const responseBody = await response.text();
+        let data;
+
+        try {
+            data = responseBody ? JSON.parse(responseBody) : {};
+        } catch {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${responseBody}`);
+            }
+            throw new Error("The server returned an invalid response.");
+        }
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || `HTTP ${response.status}`);
+        }
+
+        return data;
+    }
+
+    async function refreshCounts() {
+        const counts = await requestJson("/api/counts");
+        updateCounts(counts);
+    }
+
+    function setLoadTestStatus(state, message) {
+        loadTestStatus.dataset.state = state;
+        loadTestStatus.textContent = message;
+    }
+
+    function displayLoadTestResults(results) {
+        document.getElementById("result-total").textContent = results.totalRequests;
+        document.getElementById("result-passed").textContent = results.passedRequests;
+        document.getElementById("result-failed").textContent = results.failedRequests;
+        document.getElementById("result-rate").textContent = `${results.requestsPerSecond.toFixed(2)} / sec`;
+        document.getElementById("result-average").textContent = `${results.averageResponseTimeMillis.toFixed(2)} ms`;
+        document.getElementById("result-p95").textContent = `${results.p95ResponseTimeMillis} ms`;
+        loadTestResults.hidden = false;
+    }
+
+    function wait(milliseconds) {
+        return new Promise((resolve) => setTimeout(resolve, milliseconds));
+    }
+
+    async function runLoadTest(event) {
+        event.preventDefault();
+        if (loadTestButton.disabled) {
+            return;
+        }
+
+        const totalRequests = Number(document.getElementById("total-requests").value);
+        const concurrency = Number(document.getElementById("request-concurrency").value);
+        const method = document.getElementById("load-method").value;
+
+        if (!Number.isInteger(totalRequests) || totalRequests < 1 || totalRequests > 1000) {
+            setLoadTestStatus("error", "Choose between 1 and 1,000 requests.");
+            return;
+        }
+        if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 100 || concurrency > totalRequests) {
+            setLoadTestStatus("error", "Choose between 1 and 100 requests at a time, no more than the total.");
+            return;
+        }
+
+        loadTestButton.disabled = true;
+        loadTestResults.hidden = true;
+        setLoadTestStatus("idle", "Starting the test...");
+
+        try {
+            const job = await requestJson(gatewayApi, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    targetUrl: "http://localhost:8080/api/test",
+                    method,
+                    totalRequests,
+                    concurrency,
+                    gatewayHost: "localhost",
+                    gatewayPort: 9100,
+                    timeoutMillis: 5000
+                })
+            });
+
+            setLoadTestStatus("idle", `Test ${job.testId} is ${String(job.status).toLowerCase()}...`);
+
+            let currentJob;
+            do {
+                await wait(500);
+                currentJob = await requestJson(`${gatewayApi}/${encodeURIComponent(job.testId)}`);
+                setLoadTestStatus("idle", `Test ${String(currentJob.status).toLowerCase()}...`);
+                if (currentJob.status === "FAILED") {
+                    throw new Error(currentJob.error || "The load test failed.");
+                }
+            } while (currentJob.status !== "COMPLETED");
+
+            const results = await requestJson(`${gatewayApi}/${encodeURIComponent(job.testId)}/results`);
+            displayLoadTestResults(results);
+            try {
+                await refreshCounts();
+                setLoadTestStatus("success", "Test completed. Counter totals have been refreshed.");
+            } catch (error) {
+                setLoadTestStatus("success", `Test completed, but counter totals could not refresh: ${error.message}`);
+            }
+        } catch (error) {
+            setLoadTestStatus("error", `Test could not complete: ${error.message}`);
+        } finally {
+            loadTestButton.disabled = false;
+        }
+    }
+
+    loadTestForm.addEventListener("submit", runLoadTest);
+    refreshCounts().catch((error) => {
+        setLoadTestStatus("error", `Could not load counters: ${error.message}`);
+    });
+</script>
+</body>
+</html>
